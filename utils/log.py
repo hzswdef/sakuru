@@ -3,23 +3,27 @@ import logging
 from config import PATH
 
 class log:
-    def __init__(self, debug: bool):
-        import os
-        from datetime import datetime
+    def __init__(self, debug: bool, quiet: bool):
+        if not quiet:
+            import os
+            from datetime import datetime
+            
+            self.log_file = f'{datetime.today().strftime("%d_%m_%Y-%H:%M:%S")}.log'
+            
+            if not os.path.exists(f'{PATH}/log'):
+                os.makedirs(f'{PATH}/log')
+            
+            del os
+            del datetime
+            
+            logging.basicConfig(
+                filename=f'{PATH}/log/{self.log_file}', 
+                format='[ %(asctime)s ] %(message)s', 
+                filemode='w'
+            )
+        else:
+            logging.basicConfig(format='[ %(asctime)s ] %(message)s')
         
-        self.log_file = f'{datetime.today().strftime("%d_%m_%Y-%H:%M:%S")}.log'
-        
-        if not os.path.exists(f'{PATH}/log'):
-            os.makedirs(f'{PATH}/log')
-        
-        del os
-        del datetime
-        
-        logging.basicConfig(
-            filename=f'{PATH}/log/{self.log_file}', 
-            format='[ %(asctime)s ] %(message)s', 
-            filemode='w'
-        )
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG if debug else logging.INFO)
     
@@ -48,3 +52,8 @@ class log:
             logging.info('bot started.')
         else:
             logging.info('bot started. DEBUG MODE!')
+    
+    
+    @classmethod
+    def command(cls, uid: int, username: str, command: str):
+        logging.info(f'{uid} {username}: {command}')
