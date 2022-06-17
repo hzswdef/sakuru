@@ -6,6 +6,11 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.log = bot.log
+        
+        self.bot_commands = []
+            *[_.name for _ in self.bot.commands],
+            *sum([[a for a in _.aliases] for _ in self.bot.commands], [])
+        ]
     
     
     @commands.Cog.listener()
@@ -29,12 +34,7 @@ class Events(commands.Cog):
             except:
                 command = None
             
-            bot_commands = [
-                *[_.name for _ in self.bot.commands],
-                *sum([[a for a in _.aliases] for _ in self.bot.commands], [])
-            ]
-            
-            if command in bot_commands:
+            if command in self.bot_commands:
                 self.log.command(
                     message.author.id,
                     f'{message.author.name}#{message.author.discriminator}',
