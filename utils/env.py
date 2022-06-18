@@ -17,6 +17,10 @@ def load():
                 setattr(env, key, True if value == 'True' else False)
                 continue
             
+            if key in ['ADMIN', 'GUILD']:
+                setattr(env, key, int(value))
+                continue
+            
             setattr(env, key, value)
         return env
     
