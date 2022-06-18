@@ -7,7 +7,8 @@ class Events(commands.Cog):
         self.bot = bot
         self.log = bot.log
         
-        self.bot_commands = []
+        # List of all bot commands with aliases
+        self.bot_commands = [
             *[_.name for _ in self.bot.commands],
             *sum([[a for a in _.aliases] for _ in self.bot.commands], [])
         ]

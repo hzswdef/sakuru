@@ -17,7 +17,7 @@ def load():
                 setattr(env, key, True if value == 'True' else False)
                 continue
             
-            if key in ['ADMIN', 'GUILD']:
+            if key in ['ADMIN', 'GUILD', 'NOTIFY_CHANNEL']:
                 setattr(env, key, int(value))
                 continue
             

@@ -55,5 +55,10 @@ class log:
     
     
     @classmethod
-    def command(cls, uid: int, username: str, command: str):
+    def command(cls, uid: int, username: str, message: str):
         logging.info(f'{uid} {username}: {command}')
+    
+    
+    @classmethod
+    def info(cls, msg: str):
+        logging.info(msg)
