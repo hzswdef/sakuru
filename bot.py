@@ -8,6 +8,7 @@ import utils.log
 from discord.ext import commands
 from config import MODULES
 
+utils.env.check_env()
 env = utils.env.load()
 
 async def main(args):
