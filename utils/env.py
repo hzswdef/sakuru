@@ -21,7 +21,7 @@ def load():
             
             if key in ['DEBUG', 'DISPLAY_BOTS']:
                 setattr(env, key, True if value == 'True' else False)
-            elif key in ['ADMIN', 'GUILD', 'NOTIFY_CHANNEL']:
+            elif key in ['ADMIN', 'GUILD', 'NOTIFY_CHANNEL', 'NEWBEE_CHANNEL']:
                 setattr(env, key, int(value))
             else:
                 setattr(env, key, value)

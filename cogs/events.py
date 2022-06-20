@@ -1,6 +1,9 @@
 import discord
 
+import utils.welcome
+
 from discord.ext import commands
+
 
 class Events(commands.Cog):
     def __init__(self, bot):
@@ -41,6 +44,11 @@ class Events(commands.Cog):
                     f'{message.author.name}#{message.author.discriminator}',
                     message.content
                 )
+    
+    
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        await utils.welcome.Welcome(self.bot, member).welcome()
 
 
 async def setup(bot):
