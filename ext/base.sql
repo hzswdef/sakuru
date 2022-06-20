@@ -1,0 +1,9 @@
+CREATE DATABASE sakuru;
+USE sakuru;
+
+CREATE TABLE `members` (
+    id BIGINT(18) NOT NULL PRIMARY KEY,
+    messages INT(11) NOT NULL DEFAULT 0,
+    voice INT(11) NOT NULL DEFAULT 0,
+    bot BOOLEAN NOT NULL
+)
