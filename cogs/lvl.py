@@ -5,6 +5,7 @@ import objects.color
 
 from discord.ext import commands
 from datetime import datetime
+from re import findall
 
 from config import VOICE_EXP, LVLS
 
@@ -54,9 +55,9 @@ class LvlSystem(utils.database.Lvl):
                 return data['role_id']
     
     
-    async def add_msg_exp(self, uid: int):
+    async def add_msg_exp(self, uid: int, bot: bool):
         if not self.user_exists(uid):
-            self.add_user(uid)
+            self.add_user(uid, bot)
         
         self.add_exp(uid)
         
@@ -64,9 +65,9 @@ class LvlSystem(utils.database.Lvl):
             await self.congrats(uid, lvl)
         
     
-    async def add_voice_exp(self, uid: int, time: int):
+    async def add_voice_exp(self, uid: int, time: int, bot: bool):
         if not self.user_exists(uid):
-            self.add_user(uid)
+            self.add_user(uid, bot)
         
         prev_exp = self.get_user_exp(uid)
         
@@ -110,7 +111,7 @@ class Lvl(commands.Cog):
             return
         
         # Grant user 1 EXP
-        await self.lvl.add_msg_exp(message.author.id)
+        await self.lvl.add_msg_exp(message.author.id, message.author.bot)
     
     
     @commands.Cog.listener()
@@ -130,7 +131,7 @@ class Lvl(commands.Cog):
             
             time_in_vc = datetime.now().timestamp() - self.voice_active[uid]
             
-            await self.lvl.add_voice_exp(uid, time_in_vc)
+            await self.lvl.add_voice_exp(uid, time_in_vc, member.bot)
             
             del self.voice_active[member.id]
         
@@ -152,12 +153,76 @@ class Lvl(commands.Cog):
     
     @commands.command()
     async def lvl(self, ctx: commands.Context, user=None):
-        pass
+        if user:
+            try:
+                user = await self.bot.fetch_user(findall('\d+', user)[0])
+            except Exception as err:
+                return await ctx.send(f'Unexpected error. Try invoke command again by `{self.bot.env.PREFIX}{ctx.command} @.dmg#1272`.', delete_after=3600)
+        else:
+            user = ctx.author
+        
+        if not self.lvl.user_exists(user.id):
+            return await ctx.send(f'{user.mention} doesn\'t exists in database.')
+        
+        data = self.lvl.get_user_data(user.id)
+        
+        exp = self.lvl.get_user_exp(user.id)
+        lvl = self.lvl.current_lvl(exp)
+        
+        exp_to_next_lvl = 0 if lvl == list(LVLS.keys())[0] else LVLS[lvl+1]['exp']
+        
+        user_pos = self.lvl.get_user_pos(user.id)
+        users_count = self.lvl.get_users_count()
+        
+        embed = discord.Embed(
+            color=color.BLACK,
+            title=f'User Stats  -  {user.name}',
+        ).add_field(
+            name=f'{lvl} lvl',
+            value=f'{exp}exp  **/**  {exp_to_next_lvl}exp'
+        ).add_field(
+            name='Voice',
+            value=f'{data["voice"] // VOICE_EXP}h, {data["voice"] % 60}m'
+        ).set_thumbnail(
+            url=user.avatar
+        ).set_footer(
+            text=f'top #{user_pos} / {users_count}'
+        )
+        
+        await ctx.send(embed=embed)
     
     
     @commands.command()
-    async def top(self, ctx: commands.Context, count: int=5):
-        pass
+    async def top(self, ctx: commands.Context, count: int=10):
+        if count <= 0:
+            return await ctx.send('Seriously?')
+        
+        await ctx.channel.typing()
+        
+        users = self.lvl.get_top_users(count)
+        
+        top = []
+        for i, user in enumerate(users):
+            discord_user = await self.bot.fetch_user(user['id'])
+            username = discord_user.name + '#' + discord_user.discriminator
+            
+            exp = self.lvl.get_user_exp(user['id'])
+            
+            msg = '**{index}.** {username}  -  {exp}exp, {hh}h {mm}m'
+            
+            top.append(msg.format(
+                index=i+1,
+                username=username,
+                exp=exp,
+                hh=user["voice"] // VOICE_EXP,
+                mm=user["voice"] % 60
+            ))
+        
+        await ctx.send(embed=discord.Embed(
+            color=color.BLACK,
+            title=f'Top {len(users)} members.',
+            description='\n'.join(top)
+        ))
 
 
 async def setup(bot):

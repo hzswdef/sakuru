@@ -16,6 +16,8 @@ class DATABASE(object):
         self.user  = env.USER
         self.passw = env.PASS
         
+        self.DISPLAY_BOTS = env.DISPLAY_BOTS
+        
         del utils.env, env
     
     
@@ -47,12 +49,28 @@ class Lvl(DATABASE):
         super(Lvl, self).__init__()
     
     
+    def get_users_count(self):
+        query = 'SELECT `id` FROM `members`'
+        
+        if not self.DISPLAY_BOTS:
+            query += ' WHERE `bot`=0'
+        
+        return len(self.execute_query(query, res=True))
+        
+    
+    
     def get_user_exp(self, uid: int):
         query = 'SELECT `messages`, `voice` FROM `members` WHERE `id`={uid}'
         
         res = self.execute_query(query.format(uid=uid), res=True)[0]
         
         return res['messages'] + (res['voice'] // VOICE_EXP)
+    
+    
+    def get_user_data(self, uid: int):
+        query = 'SELECT `messages`, `voice` FROM `members` WHERE `id`={uid}'
+        
+        return self.execute_query(query.format(uid=uid), res=True)[0]
     
     
     def add_exp(self, uid: int, time: int=None):
@@ -72,7 +90,28 @@ class Lvl(DATABASE):
         return True if self.execute_query(query.format(uid=uid), res=True) != () else False
     
     
-    def add_user(self, uid: int):
-        query = 'INSERT INTO `members` (`id`) VALUES ({uid})'
+    def add_user(self, uid: int, bot: bool):
+        query = 'INSERT INTO `members` (`id`, `bot`) VALUES ({uid}, {1 if bot else 0})'
         
-        self.execute_query(query.format(uid=uid))
+        self.execute_query(query.format(uid=uid, bot=bot))
+    
+    
+    def get_user_pos(self, uid: int):
+        if self.DISPLAY_BOTS:
+            query = 'SELECT @i:=@i+1, `id` FROM `members`, (select @i:=0)x ORDER BY `messages`+`voice`/{divide} DESC'
+        else:
+            query = 'SELECT @i:=@i+1, `id` FROM `members`, (select @i:=0)x WHERE `bot`=false ORDER BY `messages`+`voice`/{divide} DESC'
+        
+        res = self.execute_query(query.format(divide=VOICE_EXP), res=True)
+         
+        for member in res:
+            if member['id'] == uid:
+                return int(member['@i:=@i+1'])
+    
+    def get_top_users(self, count: int):
+        if self.DISPLAY_BOTS:
+            query = 'SELECT * FROM `members` ORDER BY `messages`+`voice`/{divide} DESC LIMIT {limit}'
+        else:
+            query = 'SELECT * FROM `members` WHERE `bot`=false ORDER BY `messages`+`voice`/{divide} DESC LIMIT {limit}'
+        
+        return self.execute_query(query.format(divide=VOICE_EXP, limit=count), res=True)
