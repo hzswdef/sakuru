@@ -91,7 +91,7 @@ class Lvl(DATABASE):
     
     
     def add_user(self, uid: int, bot: bool):
-        query = 'INSERT INTO `members` (`id`, `bot`) VALUES ({uid}, {1 if bot else 0})'
+        query = 'INSERT INTO `members` (`id`, `bot`) VALUES ({uid}, {bot})'
         
         self.execute_query(query.format(uid=uid, bot=bot))
     

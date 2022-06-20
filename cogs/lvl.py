@@ -143,7 +143,7 @@ class Lvl(commands.Cog):
         guild = self.bot.get_guild(self.bot.env.GUILD)
         uid = member.id
         
-        if self.user_exists(uid):
+        if self.lvl.user_exists(uid):
             lvl = self.lvl.current_lvl(self.lvl.get_user_exp(uid))
             
             return await member.add_roles(guild.get_role(self.lvl.get_role_id(lvl)))
