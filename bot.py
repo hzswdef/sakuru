@@ -44,7 +44,7 @@ async def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Discord bot.')
     parser.add_argument('-D', '--debug', default=None, type=str, help='Debug cog. Example "music".')
-    parser.add_argument('-q', '--quiet', default=False, type=bool, help='Quiet mode, turn off / on logging, default False. Example - True / False')
+    parser.add_argument('-q', '--quiet', action='store_true', help='Quiet mode, turn off / on save log files.')
     parser.add_argument('-T', '--test', action='store_true', help='Test bot with another token.')
     args = parser.parse_args()
     
